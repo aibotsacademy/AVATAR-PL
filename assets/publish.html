@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Publish — AvatarForge</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <style>
+    .pub-wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .pub-hero { text-align: center; margin-bottom: 60px; }
+    .pub-hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 11px; color: var(--neon-violet);
+      background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2);
+      padding: 6px 18px; border-radius: var(--r-full); margin-bottom: 20px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .pub-hero h1 {
+      font-family: var(--font-display); font-size: clamp(28px,4vw,42px); font-weight: 900;
+      letter-spacing: 0.02em; line-height: 1.2;
+    }
+    .pub-hero h1 span { color: var(--neon-cyan); }
+    .pub-hero p { color: var(--text-secondary); margin-top: 12px; font-size: 16px; }
+
+    /* AVATAR IDENTITY CARD */
+    .av-id-card {
+      display: flex; align-items: center; gap: 18px;
+      background: rgba(6,255,237,0.02); border: 1px solid rgba(6,255,237,0.12);
+      border-radius: var(--r-xl); padding: 20px 24px; margin-bottom: 36px;
+      position: relative; overflow: hidden;
+    }
+    .av-id-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(180deg, var(--neon-cyan), var(--neon-violet));
+    }
+    .av-id-av {
+      width: 52px; height: 52px; border-radius: 50%; overflow: hidden;
+      border: 2px solid var(--neon-cyan); box-shadow: var(--glow-cyan);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--neon-cyan);
+      background: var(--bg-mid); flex-shrink: 0;
+    }
+    .av-id-av img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* PANELS */
+    .pub-panels { display: flex; flex-direction: column; gap: 20px; }
+
+    .pub-panel { background: rgba(255,255,255,0.02); border: var(--border-dim); border-radius: var(--r-xl); overflow: hidden; }
+    .pub-panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      background: rgba(6,255,237,0.02);
+    }
+    .pub-panel-title {
+      font-family: var(--font-display); font-size: 13px; font-weight: 600;
+      color: var(--neon-cyan); letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+    }
+    .pub-panel-body { padding: 22px; }
+
+    /* SIZE BUTTONS */
+    .size-btns { display: flex; gap: 6px; }
+    .sz-btn {
+      padding: 6px 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--r-sm);
+      font-family: var(--font-mono); font-size: 11px; cursor: none; color: var(--text-muted);
+      background: none; transition: var(--transition);
+    }
+    .sz-btn.active { border-color: var(--neon-cyan); color: var(--neon-cyan); background: rgba(6,255,237,0.06); }
+    .sz-btn:hover:not(.active) { border-color: rgba(255,255,255,0.15); color: var(--text-secondary); }
+
+    /* PREVIEW IFRAME FRAME */
+    .iframe-preview-wrap {
+      display: flex; justify-content: center; padding: 8px;
+      background: var(--bg-void); border-radius: var(--r-lg);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .iframe-outer {
+      border: 1px solid rgba(6,255,237,0.2);
+      border-radius: 16px; overflow: hidden; position: relative;
+      box-shadow: 0 0 40px rgba(6,255,237,0.08), 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .iframe-outer::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    }
+
+    /* TOGGLE */
+    .opt-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .opt-row:last-child { border-bottom: none; }
+    .opt-k { font-size: 14px; font-weight: 500; }
+    .opt-d { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .toggle {
+      width: 44px; height: 24px; border-radius: 12px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+      position: relative; cursor: none; transition: var(--transition);
+    }
+    .toggle.on { background: rgba(6,255,237,0.3); border-color: var(--neon-cyan); box-shadow: 0 0 12px rgba(6,255,237,0.3); }
+    .toggle::after {
+      content:''; position:absolute; top:3px; left:3px;
+      width:16px; height:16px; border-radius:50%; background:#fff;
+      transition: transform 0.25s cubic-bezier(0.23,1,0.32,1);
+    }
+    .toggle.on::after { transform: translateX(20px); background: var(--neon-cyan); }
+
+    /* SHARE GRID */
+    .share-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    @media(max-width:600px){.share-grid{grid-template-columns:repeat(2,1fr);}}
+    .share-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 18px 12px; border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--r-lg); cursor: none; transition: var(--transition);
+      background: rgba(255,255,255,0.01);
+    }
+    .share-item:hover {
+      border-color: var(--neon-cyan); background: rgba(6,255,237,0.04);
+      transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .share-icon { font-size: 26px; }
+    .share-name { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* COPY SUCCESS */
+    .copied-flash { animation: copyFlash 0.4s ease; }
+    @keyframes copyFlash { 0%,100%{} 50%{box-shadow:0 0 20px rgba(6,255,237,0.5);} }
+  </style>
+</head>
+<body>
+  <div id="cursor"></div><div id="cursor-trail"></div>
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app-wrap">
+    <nav class="nav">
+      <a href="index.html" class="nav-logo"><div class="logo-icon">⬡</div><span class="logo-text">AVATARFORGE</span></a>
+      <div class="nav-actions">
+        <a href="#" id="chatLink" class="btn btn-primary btn-sm">💬 Chat</a>
+        <a href="#" id="editLink" class="btn btn-ghost btn-sm">✏ Edit</a>
+        <a href="index.html" class="btn btn-ghost btn-sm">← Dashboard</a>
+      </div>
+    </nav>
+
+    <div class="pub-wrap">
+      <div class="pub-hero anim-fade-up">
+        <div class="pub-hero-badge">⊞ Deploy & Embed</div>
+        <h1>Publish <span>Your Avatar</span></h1>
+        <p>Generate an embeddable widget or share a direct link — no server required.</p>
+      </div>
+
+      <!-- IDENTITY -->
+      <div class="av-id-card anim-fade-up anim-delay-1">
+        <div class="av-id-av" id="avIdImg">?</div>
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:20px" id="avIdName">Loading...</div>
+          <div style="color:var(--text-secondary);font-size:13px;margin-top:2px" id="avIdRole"></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px" id="avIdBadges"></div>
+      </div>
+
+      <div class="pub-panels">
+        <!-- DIRECT LINK -->
+        <div class="pub-panel anim-fade-up anim-delay-2">
+          <div class="pub-panel-head">
+            <div class="pub-panel-title">🔗 Direct Link</div>
+            <button class="btn btn-ghost btn-sm" onclick="copyLink()">Copy Link</button>
+          </div>
+          <div class="pub-panel-body">
+            <div class="code-block" id="linkBox" style="cursor:none" onclick="copyLink()"></div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:10px;line-height:1.8">Share this URL directly. The avatar config is encoded in the URL — works without any backend.</div>
+          </div>
+        </div>
+
+        <!-- IFRAME EMBED -->
+        <div class="pub-panel anim-fade-up anim-delay-3">
+          <div class="pub-panel-head">
+            <div class="pub-panel-title">⊞ iFrame Embed</div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <div class="size-btns">
+                <button class="sz-btn active" onclick="setSize(400,600,this)">S</button>
+                <button class="sz-btn" onclick="setSize(480,700,this)">M</button>
+                <button class="sz-btn" onclick="setSize(600,800,this)">L</button>
+                <button class="sz-btn" onclick="setSize('100%','100vh',this)">Full</button>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="copyEmbed()">Copy Code</button>
+            </div>
+          </div>
+          <div class="pub-panel-body">
+            <div class="code-block" id="embedBox" onclick="copyEmbed()" style="cursor:none"></div>
+
+            <div class="divider"></div>
+
+            <div class="section-label">Options</div>
+            <div>
+              <div class="opt-row">
+                <div><div class="opt-k">Rounded corners</div><div class="opt-d">Apply border-radius to iframe frame</div></div>
+                <button class="toggle on" id="tgRounded" onclick="this.classList.toggle('on');updateEmbed()"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE PREVIEW -->
+        <div class="pub-panel anim-fade-up anim-delay-4">
+          <div class="pub-panel-head">
+            <div class="pub-panel-title">👁 Live Preview</div>
+            <span class="badge badge-dim">iFrame Render</span>
+          </div>
+          <div class="pub-panel-body">
+            <div class="iframe-preview-wrap">
+              <div class="iframe-outer" style="width:360px;height:520px">
+                <iframe id="previewFrame" style="width:100%;height:100%;border:none" title="Preview"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHARE -->
+        <div class="pub-panel anim-fade-up anim-delay-5">
+          <div class="pub-panel-head">
+            <div class="pub-panel-title">📡 Quick Share</div>
+          </div>
+          <div class="pub-panel-body">
+            <div class="share-grid">
+              <div class="share-item clickable" onclick="shareMail()">
+                <div class="share-icon">📧</div>
+                <div class="share-name">Email</div>
+              </div>
+              <div class="share-item clickable" onclick="shareX()">
+                <div class="share-icon">𝕏</div>
+                <div class="share-name">X / Twitter</div>
+              </div>
+              <div class="share-item clickable" onclick="shareLI()">
+                <div class="share-icon">💼</div>
+                <div class="share-name">LinkedIn</div>
+              </div>
+              <div class="share-item clickable" onclick="copyLink()">
+                <div class="share-icon">📋</div>
+                <div class="share-name">Copy Link</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastWrap" class="toast-wrap"></div>
+  <script src="assets/app.js"></script>
+  <script>
+    let avatar=null, W=400, H=600, cfgB64='', baseURL='';
+
+    function init() {
+      const id=getParam('id');
+      if(!id){location.href='index.html';return;}
+      avatar=AvatarStore.get(id);
+      if(!avatar){location.href='index.html';return;}
+
+      const safe={...avatar}; delete safe.id;
+      cfgB64=encodeConfig(safe);
+      baseURL=window.location.origin+window.location.pathname.replace('publish.html','');
+
+      renderIdCard();
+      updateAll();
+
+      document.getElementById('chatLink').href=`preview.html?id=${avatar.id}`;
+      document.getElementById('editLink').href=`editor.html?id=${avatar.id}`;
+    }
+
+    function renderIdCard() {
+      const el=document.getElementById('avIdImg');
+      if(avatar.appearance_url){
+        el.innerHTML=`<img src="${avatar.appearance_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.textContent='${avatar.name.charAt(0).toUpperCase()}'" />`;
+      } else el.textContent=avatar.name.charAt(0).toUpperCase();
+      document.getElementById('avIdName').textContent=avatar.name;
+      document.getElementById('avIdRole').textContent=avatar.role||'AI Assistant';
+      document.getElementById('avIdBadges').innerHTML=`<span class="badge badge-cyan">${avatar.model||'gpt-4o-mini'}</span>`;
+    }
+
+    function updateAll() {
+      const url=`${baseURL}preview.html?config=${cfgB64}`;
+      document.getElementById('linkBox').textContent=url;
+      updateEmbed();
+      document.getElementById('previewFrame').src=url;
+    }
+
+    function updateEmbed() {
+      const url=`${baseURL}preview.html?config=${cfgB64}`;
+      const rounded=document.getElementById('tgRounded').classList.contains('on');
+      const wStr=typeof W==='number'?`${W}px`:W;
+      const hStr=typeof H==='number'?`${H}px`:H;
+      const style=`width:${wStr};height:${hStr};border:none;${rounded?'border-radius:16px;':''}`;
+      document.getElementById('embedBox').textContent=`<iframe src="${url}" style="${style}" title="${avatar.name} — AI Avatar" allow="microphone"></iframe>`;
+    }
+
+    function setSize(w,h,btn) {
+      W=w; H=h;
+      document.querySelectorAll('.sz-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); updateEmbed();
+    }
+
+    function copyLink() {
+      const txt=document.getElementById('linkBox').textContent;
+      navigator.clipboard.writeText(txt).then(()=>{
+        document.getElementById('linkBox').classList.add('copied-flash');
+        setTimeout(()=>document.getElementById('linkBox').classList.remove('copied-flash'),400);
+        toast('Link copied!','success');
+      });
+    }
+
+    function copyEmbed() {
+      navigator.clipboard.writeText(document.getElementById('embedBox').textContent)
+        .then(()=>toast('Embed code copied!','success'));
+    }
+
+    function shareMail() {
+      const url=`${baseURL}preview.html?config=${cfgB64}`;
+      window.open(`mailto:?subject=Chat with ${avatar.name}&body=I built an AI avatar — try it: ${url}`);
+    }
+    function shareX() {
+      const url=`${baseURL}preview.html?config=${cfgB64}`;
+      window.open(`https://twitter.com/intent/tweet?text=I built "${avatar.name}", an AI avatar&url=${encodeURIComponent(url)}`);
+    }
+    function shareLI() {
+      const url=`${baseURL}preview.html?config=${cfgB64}`;
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`);
+    }
+
+    init();
+    initParticles('bg-canvas');
+  </script>
+</body>
+</html>
