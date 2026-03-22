@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Create Avatar — AvatarForge</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <style>
+    .creator-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 100px; }
+
+    .creator-header { margin-bottom: 56px; }
+    .creator-header h1 {
+      font-family: var(--font-display); font-size: 34px; font-weight: 900;
+      letter-spacing: 0.02em; margin-top: 8px;
+    }
+    .creator-header h1 span { color: var(--neon-cyan); }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; animation: stepReveal 0.4s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes stepReveal { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:none} }
+
+    .panel-head { margin-bottom: 32px; }
+    .panel-num {
+      font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan); opacity: 0.6;
+      text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px;
+    }
+    .panel-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+    .panel-desc { color: var(--text-secondary); font-size: 15px; margin-top: 4px; }
+
+    .fields { display: flex; flex-direction: column; gap: 22px; }
+    .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:580px){.fields-row{grid-template-columns:1fr;}}
+
+    /* AVATAR PREVIEW */
+    .avatar-preview-zone {
+      display: flex; gap: 24px; align-items: flex-start;
+    }
+    .av-preview {
+      width: 100px; height: 100px; border-radius: 50%; flex-shrink: 0;
+      background: var(--bg-mid); overflow: hidden;
+      border: 2px solid rgba(6,255,237,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 40px; font-weight: 900;
+      color: rgba(6,255,237,0.3); position: relative; cursor: none;
+      transition: var(--transition); box-shadow: 0 0 30px rgba(6,255,237,0.06);
+    }
+    .av-preview:hover { border-color: var(--neon-cyan); box-shadow: 0 0 30px rgba(6,255,237,0.2); }
+    .av-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .av-preview-ring {
+      position: absolute; inset: -6px; border-radius: 50%;
+      border: 1px solid rgba(6,255,237,0.15);
+      animation: ringRotate 8s linear infinite;
+    }
+    @keyframes ringRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+    /* STEP NAV */
+    .step-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 40px; padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* TEMP */
+    .temp-val {
+      font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--neon-cyan);
+      text-shadow: 0 0 20px rgba(6,255,237,0.5);
+    }
+    .temp-desc { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* PROMPT CHIPS */
+    .prompt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .prompt-chip {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+      padding: 5px 12px; border: 1px solid rgba(255,255,255,0.07); border-radius: var(--r-full);
+      color: var(--text-muted); cursor: none; transition: var(--transition);
+      background: rgba(255,255,255,0.02);
+    }
+    .prompt-chip:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); background: rgba(6,255,237,0.05); }
+
+    /* REVIEW */
+    .review-card {
+      background: rgba(6,255,237,0.02); border: 1px solid rgba(6,255,237,0.12);
+      border-radius: var(--r-xl); overflow: hidden;
+      box-shadow: 0 0 40px rgba(6,255,237,0.04);
+    }
+    .review-hero {
+      display: flex; gap: 20px; align-items: center; padding: 24px;
+      background: linear-gradient(135deg, rgba(6,255,237,0.04), transparent);
+      border-bottom: 1px solid rgba(6,255,237,0.08);
+    }
+    .review-avatar {
+      width: 72px; height: 72px; border-radius: 50%; overflow: hidden;
+      border: 2px solid var(--neon-cyan); box-shadow: var(--glow-cyan);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--neon-cyan);
+      background: var(--bg-mid);
+    }
+    .review-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .review-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+    .review-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .review-row {
+      display: flex; gap: 12px; padding: 16px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .review-row:last-child { border-bottom: none; }
+    .review-label { font-family: var(--font-mono); font-size: 10px; color: var(--neon-cyan); opacity: 0.6; width: 90px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.1em; padding-top: 2px; }
+    .review-val { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* CREATE BTN glow */
+    .btn-create {
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
+      color: #000; font-family: var(--font-display); font-size: 16px; font-weight: 700;
+      letter-spacing: 0.08em; padding: 16px 36px; border-radius: var(--r-md);
+      border: none; cursor: none; position: relative; overflow: hidden;
+      box-shadow: 0 0 30px rgba(6,255,237,0.4), 0 0 80px rgba(139,92,246,0.2);
+      transition: var(--transition);
+    }
+    .btn-create:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 50px rgba(6,255,237,0.6), 0 0 100px rgba(139,92,246,0.3);
+    }
+    .btn-create::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+      transform: translateX(-100%); transition: transform 0.5s;
+    }
+    .btn-create:hover::after { transform: translateX(100%); }
+  </style>
+</head>
+<body>
+  <div id="cursor"></div><div id="cursor-trail"></div>
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app-wrap">
+    <nav class="nav">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon">⬡</div>
+        <span class="logo-text">AVATARFORGE</span>
+      </a>
+      <div class="nav-actions">
+        <a href="index.html" class="btn btn-ghost btn-sm">← Dashboard</a>
+      </div>
+    </nav>
+
+    <div class="creator-wrap">
+      <div class="creator-header">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--neon-cyan);letter-spacing:0.15em;text-transform:uppercase;opacity:0.7">// Avatar Creator</div>
+        <h1>Design your <span>AI Persona</span></h1>
+      </div>
+
+      <!-- WIZARD STEPS -->
+      <div class="wizard-steps" id="wizardSteps">
+        <div class="step-node active" id="sn0">
+          <div class="step-circle">01</div>
+          <span class="step-label">Identity</span>
+        </div>
+        <div class="step-line" id="sl0"></div>
+        <div class="step-node" id="sn1">
+          <div class="step-circle">02</div>
+          <span class="step-label">Personality</span>
+        </div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step-node" id="sn2">
+          <div class="step-circle">03</div>
+          <span class="step-label">AI Model</span>
+        </div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step-node" id="sn3">
+          <div class="step-circle">04</div>
+          <span class="step-label">Launch</span>
+        </div>
+      </div>
+
+      <!-- STEP 0 — Identity -->
+      <div class="step-panel active" id="p0">
+        <div class="panel-head">
+          <div class="panel-num">Step 01 / 04</div>
+          <div class="panel-title">Avatar Identity</div>
+          <div class="panel-desc">Define who your AI avatar is — name, role, and visual.</div>
+        </div>
+        <div class="fields">
+          <div class="avatar-preview-zone">
+            <div class="av-preview clickable" id="avPrev" onclick="document.getElementById('fImg').focus()">
+              <div class="av-preview-ring"></div>
+              <span id="avInitial">?</span>
+            </div>
+            <div class="fields" style="flex:1">
+              <div class="field">
+                <label class="label">Avatar Name *</label>
+                <input type="text" class="input" id="fName" placeholder="e.g. Luna, Aria, Nexus..." oninput="updatePrev()"/>
+              </div>
+              <div class="field">
+                <label class="label">Role / Specialty</label>
+                <input type="text" class="input" id="fRole" placeholder="e.g. Customer Success, Sales Coach..."/>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Avatar Image URL</label>
+            <input type="url" class="input" id="fImg" placeholder="https://your-avatar-image.png" oninput="updateImgPrev()"/>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:4px">Link to a portrait — or leave blank for initials avatar</div>
+          </div>
+          <div class="fields-row">
+            <div class="field">
+              <label class="label">Language</label>
+              <select class="select input" id="fLang">
+                <option>English</option><option>Spanish</option><option>French</option>
+                <option>German</option><option>Portuguese</option><option>Italian</option>
+                <option>Japanese</option><option>Chinese</option><option>Arabic</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Animation Style</label>
+              <select class="select input" id="fAnim">
+                <option value="none">None</option>
+                <option value="pulse">Pulse Glow</option>
+                <option value="float">Float</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <div></div>
+          <button class="btn btn-primary" onclick="go(1)">Next: Personality →</button>
+        </div>
+      </div>
+
+      <!-- STEP 1 — Personality -->
+      <div class="step-panel" id="p1">
+        <div class="panel-head">
+          <div class="panel-num">Step 02 / 04</div>
+          <div class="panel-title">Personality & Behavior</div>
+          <div class="panel-desc">Shape how your avatar thinks, talks, and responds.</div>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label class="label">Communication Tone</label>
+            <div class="tone-grid">
+              <div class="tone-chip selected" data-tone="friendly" onclick="selTone(this)">
+                <span class="t-emoji">😊</span><span class="t-name">Friendly</span>
+              </div>
+              <div class="tone-chip" data-tone="professional" onclick="selTone(this)">
+                <span class="t-emoji">💼</span><span class="t-name">Professional</span>
+              </div>
+              <div class="tone-chip" data-tone="casual" onclick="selTone(this)">
+                <span class="t-emoji">😎</span><span class="t-name">Casual</span>
+              </div>
+              <div class="tone-chip" data-tone="enthusiastic" onclick="selTone(this)">
+                <span class="t-emoji">🚀</span><span class="t-name">Hype</span>
+              </div>
+              <div class="tone-chip" data-tone="empathetic" onclick="selTone(this)">
+                <span class="t-emoji">🤝</span><span class="t-name">Empathetic</span>
+              </div>
+              <div class="tone-chip" data-tone="witty" onclick="selTone(this)">
+                <span class="t-emoji">✨</span><span class="t-name">Witty</span>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">System Prompt</label>
+            <textarea class="textarea" id="fPrompt" rows="5" placeholder="You are {name}, a {role}. You always..."></textarea>
+            <div class="prompt-chips">
+              <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);align-self:center">TEMPLATES:</span>
+              <button class="prompt-chip" onclick="applyTpl('support')">🎧 Support</button>
+              <button class="prompt-chip" onclick="applyTpl('sales')">💰 Sales</button>
+              <button class="prompt-chip" onclick="applyTpl('coach')">🏋 Coach</button>
+              <button class="prompt-chip" onclick="applyTpl('tutor')">📚 Tutor</button>
+              <button class="prompt-chip" onclick="applyTpl('companion')">🌟 Companion</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Greeting Message</label>
+            <input type="text" class="input" id="fGreeting" placeholder="Hey! I'm ready to help. What's on your mind?"/>
+          </div>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" onclick="go(0)">← Back</button>
+          <button class="btn btn-primary" onclick="go(2)">Next: AI Model →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 — Model -->
+      <div class="step-panel" id="p2">
+        <div class="panel-head">
+          <div class="panel-num">Step 03 / 04</div>
+          <div class="panel-title">AI Model</div>
+          <div class="panel-desc">Choose the intelligence powering your avatar.</div>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label class="label">Select Model</label>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="model-option selected" data-model="gpt-4o-mini" onclick="selModel(this)">
+                <div style="font-size:24px">🟢</div>
+                <div style="flex:1">
+                  <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)">GPT-4o mini</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">OpenAI · Fast · Affordable</div>
+                </div>
+                <span class="badge badge-green">Recommended</span>
+              </div>
+              <div class="model-option" data-model="gpt-4o" onclick="selModel(this)">
+                <div style="font-size:24px">🟢</div>
+                <div style="flex:1">
+                  <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)">GPT-4o</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">OpenAI · Most Capable GPT</div>
+                </div>
+              </div>
+              <div class="model-option" data-model="claude-3-5-haiku-20241022" onclick="selModel(this)">
+                <div style="font-size:24px">🟠</div>
+                <div style="flex:1">
+                  <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)">Claude 3.5 Haiku</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">Anthropic · Fast & Smart</div>
+                </div>
+              </div>
+              <div class="model-option" data-model="claude-3-5-sonnet-20241022" onclick="selModel(this)">
+                <div style="font-size:24px">🟠</div>
+                <div style="flex:1">
+                  <div style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text-primary)">Claude 3.5 Sonnet</div>
+                  <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">Anthropic · Best Quality</div>
+                </div>
+                <span class="badge badge-violet">Premium</span>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" style="display:flex;justify-content:space-between">
+              <span>Creativity (Temperature)</span>
+              <span class="temp-val" id="tempVal">0.7</span>
+            </label>
+            <input type="range" class="range" id="fTemp" min="0" max="1" step="0.05" value="0.7"
+              oninput="document.getElementById('tempVal').textContent=this.value;updateTempDesc()"/>
+            <div class="temp-desc" id="tempDesc">Balanced — predictable but creative responses</div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:2px">
+              <span>🧊 Focused</span><span>🔥 Wild</span>
+            </div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" onclick="go(1)">← Back</button>
+          <button class="btn btn-primary" onclick="go(3)">Review & Launch →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 — Review -->
+      <div class="step-panel" id="p3">
+        <div class="panel-head">
+          <div class="panel-num">Step 04 / 04</div>
+          <div class="panel-title">Review & Launch</div>
+          <div class="panel-desc">Your avatar is ready. Confirm and bring it to life.</div>
+        </div>
+        <div id="reviewCard" class="review-card" style="margin-bottom:32px"></div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" onclick="go(2)">← Back</button>
+          <button class="btn-create" onclick="create()">⬡ LAUNCH AVATAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastWrap" class="toast-wrap"></div>
+  <script src="assets/app.js"></script>
+  <script>
+    let step=0, tone='friendly', model='gpt-4o-mini';
+
+    const tpls = {
+      support: (n,r) => `You are ${n||'an assistant'}${r?', a '+r:''}. Your goal is to resolve issues quickly and empathetically. Be patient, solution-focused, and always professional. Clarify before assuming.`,
+      sales: (n,r) => `You are ${n||'an assistant'}${r?', a '+r:''}. Guide prospects toward a decision by understanding their needs. Be consultative, value-driven, and never pushy. Ask powerful discovery questions.`,
+      coach: (n,r) => `You are ${n||'an assistant'}${r?', a '+r:''}. Inspire, challenge, and support users in achieving their goals. Use motivational language, ask accountability questions, celebrate wins.`,
+      tutor: (n,r) => `You are ${n||'an assistant'}${r?', a '+r:''}. Explain concepts clearly using analogies and examples. Adapt to the learner's level. Check understanding and make learning engaging.`,
+      companion: (n,r) => `You are ${n||'an assistant'}${r?', a '+r:''}. You are warm, curious, and supportive. Listen attentively, respond with empathy, and engage deeply with what the user shares.`
+    };
+
+    const tempDescs = [
+      [0, 0.2, 'Very focused — deterministic, consistent responses'],
+      [0.2, 0.5, 'Focused — predictable with slight variation'],
+      [0.5, 0.75, 'Balanced — predictable but creative responses'],
+      [0.75, 0.9, 'Creative — varied and expressive responses'],
+      [0.9, 1.01, 'Wild — highly creative and unpredictable']
+    ];
+    function updateTempDesc() {
+      const v = parseFloat(document.getElementById('fTemp').value);
+      const d = tempDescs.find(([a,b])=>v>=a&&v<b);
+      document.getElementById('tempDesc').textContent = d?d[2]:'';
+    }
+
+    function go(n) {
+      if (n>step && !validate()) return;
+      document.getElementById(`p${step}`).classList.remove('active');
+      document.getElementById(`p${n}`).classList.add('active');
+      for(let i=0;i<4;i++){
+        const sn = document.getElementById(`sn${i}`);
+        const sl = document.getElementById(`sl${i}`);
+        sn.classList.remove('active','done');
+        if(i<n){sn.classList.add('done');if(sl)sl.classList.add('done');}
+        else if(i===n){sn.classList.add('active');}
+        else{if(sl)sl.classList.remove('done');}
+      }
+      step=n;
+      if(n===3) renderReview();
+    }
+
+    function validate() {
+      if(step===0 && !document.getElementById('fName').value.trim()){
+        toast('Avatar name is required','error');
+        document.getElementById('fName').focus(); return false;
+      }
+      return true;
+    }
+
+    function selTone(el) {
+      document.querySelectorAll('.tone-chip').forEach(c=>c.classList.remove('selected'));
+      el.classList.add('selected'); tone=el.dataset.tone;
+    }
+
+    function selModel(el) {
+      document.querySelectorAll('.model-option').forEach(m=>m.classList.remove('selected'));
+      el.classList.add('selected'); model=el.dataset.model;
+    }
+
+    function applyTpl(t) {
+      const fn=tpls[t]; if(!fn)return;
+      document.getElementById('fPrompt').value = fn(document.getElementById('fName').value, document.getElementById('fRole').value);
+    }
+
+    function updatePrev() {
+      const n = document.getElementById('fName').value;
+      const el = document.getElementById('avInitial');
+      if (!document.querySelector('#avPrev img')) el.textContent = n ? n.charAt(0).toUpperCase() : '?';
+    }
+
+    function updateImgPrev() {
+      const url = document.getElementById('fImg').value;
+      const box = document.getElementById('avPrev');
+      const init = document.getElementById('avInitial');
+      let img = box.querySelector('img');
+      if (!url) { if(img)img.remove(); init.style.display=''; return; }
+      if (!img) { img=document.createElement('img'); img.style.cssText='width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%'; box.appendChild(img); }
+      img.src=url;
+      img.onload=()=>{init.style.display='none';};
+      img.onerror=()=>{img.remove();init.style.display='';};
+    }
+
+    function renderReview() {
+      const n=document.getElementById('fName').value;
+      const r=document.getElementById('fRole').value;
+      const img=document.getElementById('fImg').value;
+      const prompt=document.getElementById('fPrompt').value;
+      const greeting=document.getElementById('fGreeting').value;
+
+      document.getElementById('reviewCard').innerHTML = `
+        <div class="review-hero">
+          <div class="review-avatar">
+            ${img?`<img src="${img}" onerror="this.parentElement.textContent='${n.charAt(0).toUpperCase()}'" />`:''}
+            ${!img?n.charAt(0).toUpperCase():''}
+          </div>
+          <div>
+            <div class="review-name">${n}</div>
+            <div style="color:var(--text-secondary);font-size:14px;margin-top:2px">${r||'AI Assistant'}</div>
+            <div class="review-meta">
+              <span class="badge badge-cyan">${model}</span>
+              <span class="badge badge-dim">${document.getElementById('fLang').value}</span>
+              <span class="badge badge-dim">tone: ${tone}</span>
+              <span class="badge badge-dim">temp ${document.getElementById('fTemp').value}</span>
+            </div>
+          </div>
+        </div>
+        ${prompt?`<div class="review-row"><div class="review-label">System Prompt</div><div class="review-val" style="max-height:60px;overflow:hidden">${prompt}</div></div>`:''}
+        ${greeting?`<div class="review-row"><div class="review-label">Greeting</div><div class="review-val">"${greeting}"</div></div>`:''}
+      `;
+    }
+
+    function create() {
+      if(!validate()) return;
+      const avatar = {
+        id: crypto.randomUUID(),
+        name: document.getElementById('fName').value.trim(),
+        role: document.getElementById('fRole').value.trim(),
+        appearance_url: document.getElementById('fImg').value.trim(),
+        language: document.getElementById('fLang').value,
+        animation_style: document.getElementById('fAnim').value,
+        tone, model,
+        system_prompt: document.getElementById('fPrompt').value.trim(),
+        greeting: document.getElementById('fGreeting').value.trim(),
+        temperature: document.getElementById('fTemp').value,
+        created_at: new Date().toISOString()
+      };
+      AvatarStore.save(avatar);
+      toast(`"${avatar.name}" launched!`, 'success', 1500);
+      setTimeout(()=>location.href=`preview.html?id=${avatar.id}`, 900);
+    }
+
+    initParticles('bg-canvas');
+  </script>
+</body>
+</html>
